@@ -4,6 +4,7 @@ const gods = require("../db/gods");
 const abilities = require("../db/abilities");
 const apicache = require("apicache");
 const { statsManAuth } = require("../auth/auth");
+const statistics = require("../db/statistics");
 
 const cache = apicache.middleware;
 
@@ -69,6 +70,19 @@ router.get(
     try {
       const hours = parseInt(req.query.hours) || 24;
       const stats = await abilities.getWinnerLevelRates(hours);
+      res.status(200).json(stats);
+    } catch (error) {
+      console.log(error);
+      res.status(500).send({ message: "Server Error" });
+    }
+  }
+);
+
+router.get(
+  "/statistics/gods",
+  async (req, res) => {
+    try {
+      const stats = await statistics.getGodStats();
       res.status(200).json(stats);
     } catch (error) {
       console.log(error);
