@@ -188,7 +188,6 @@ module.exports = {
   async getGodStats(filters) {
     let q = getGodStatsQuery();
     const mappedFilters = mapFilters(filters, q);
-    console.log(queryToString(q))
     const { rows } = await query(queryToString(q));
     if (rows.length == 0) {
       return {
