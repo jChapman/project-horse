@@ -83,9 +83,10 @@ function getSeasonFilter(seasonName) {
 }
 
 /**
---- Pick count (summing the level of the ability), win count, top 4 count
+--- Owned count, pick count (summing the level of the ability), win count, top 4 count
 select ability_name,
-       sum(ability_level) as picks,
+       count(*) as owned_count,
+       sum(ability_level) as pick_count,
        avg(ability_level) as average_level,
        sum(case when place = 1 then 1 else 0 end) as first_places,
        avg(case when place = 1 then ability_level else null end) as average_win_level,
@@ -97,14 +98,14 @@ from hero_abilities join game_player_heroes using(game_player_hero_id)
                     join games using(game_id)
 where ranked is true
 group by rollup(ability_name)
-order by picks desc;
+order by first_places desc;
  */
 function getAbilityStatsQuery() {
   return {
     select: [
       "ability_name",
-      "sum(ability_level) as picks",
-      "avg(ability_level) as average_level",
+      "count(*) as owned_count",
+      "sum(ability_level) as pick_count",
       "sum(case when place = 1 then 1 else 0 end) as first_places",
       "avg(case when place = 1 then ability_level else null end) as average_win_level",
       "sum(case when place >= 4 then 1 else 0 end) as top_fours",
@@ -112,12 +113,12 @@ function getAbilityStatsQuery() {
     ],
     from: "hero_abilities join game_player_heroes using(game_player_hero_id) join game_players using(game_player_id) join games using(game_id)",
     where: ["ranked is true"],
-    end: "group by rollup(ability_name) order by picks DESC",
+    end: "group by rollup(ability_name) order by first_places DESC",
   };
 }
 
 /**
---- Pick count, win count, top 4 count (to calc pick rate adjusted win rate)
+--- Pick count, win count, top 4 count (to calc win rate)
 select god, count(*) as picks,
        sum(case when place = 1 then 1 else 0 end) as first_places,
        sum(case when place >= 4 then 1 else 0 end) as top_fours
@@ -147,6 +148,25 @@ function queryToString(query) {
           ${query.end}`;
 }
 
+function mapFilters(filters, query) {
+  let mappedFilters = [];
+  for (const f in filters) {
+    if (seasonNames.includes(f)) {
+      query.where.push(getSeasonFilter(f));
+      mappedFilters.push(`Season filter '${f}'`);
+    } else if (rankNames.includes(f)) {
+      query.where.push(getRankFilter(f));
+      mappedFilters.push(`Rank filter '${f}'`);
+    } else if (timeNames.includes(f)) {
+      query.where.push(getTimeFilter(f));
+      mappedFilters.push(`Time filter '${f}'`);
+    } else {
+      mappedFilters.push(`UNKNOWN FILTER '${f}'`);
+    }
+  }
+  return mappedFilters;
+}
+
 module.exports = {
   FILTERS: {
     TIME: timeNames.reduce((prev, curr) => {
@@ -165,21 +185,7 @@ module.exports = {
 
   async getGodStats(filters) {
     let q = getGodStatsQuery();
-    let mappedFilters = [];
-    for (const f in filters) {
-      if (seasonNames.includes(f)) {
-        q.where.push(getSeasonFilter(f));
-        mappedFilters.push(`Season filter '${f}'`);
-      } else if (rankNames.includes(f)) {
-        q.where.push(getRankFilter(f));
-        mappedFilters.push(`Rank filter '${f}'`);
-      } else if (timeNames.includes(f)) {
-        q.where.push(getTimeFilter(f));
-        mappedFilters.push(`Time filter '${f}'`);
-      } else {
-        mappedFilters.push(`UNKNOWN FILTER '${f}'`);
-      }
-    }
+    const mappedFilters = mapFilters(filters, q);
     const { rows } = await query(queryToString(q));
     const [rollup, ...godRows] = rows;
     const { god: _, ...totals } = rollup;
@@ -188,8 +194,26 @@ module.exports = {
       totals,
       results: godRows.map((gStat) => ({
         ...gStat,
-        winRate: gStat.picks > 0 ? gStat.first_places / gStat.picks : 0,
-        topFourRate: gStat.picks > 0 ? gStat.top_fours / gStat.picks : 0,
+        win_rate: gStat.picks > 0 ? gStat.first_places / gStat.picks : 0,
+        top_four_rate: gStat.picks > 0 ? gStat.top_fours / gStat.picks : 0
+      })),
+    };
+  },
+
+  async getAbilityStats(filters) {
+    let q = getAbilityStatsQuery();
+    const mappedFilters = mapFilters(filters, q);
+    const { rows } = await query(queryToString(q));
+    const [rollup, ...abilityRows] = rows;
+    const { ability_name: _, ...totals } = rollup;
+    return {
+      filters: mappedFilters,
+      totals,
+      results: abilityRows.map((gStat) => ({
+        ...gStat,
+        win_rate: gStat.picks > 0 ? gStat.first_places / gStat.owned_count : 0,
+        top_four_rate:
+          gStat.picks > 0 ? gStat.top_fours / gStat.owned_count : 0
       })),
     };
   },
