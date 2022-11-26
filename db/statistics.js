@@ -11,7 +11,7 @@ const ranks = [
   { name: "Divine", floor: 3500, ceiling: 4500 },
   { name: "Immortal", floor: 4500, ceiling: 9999 },
 ];
-const rankNames = ranks.map((r) => r.name);
+const rankNames = ranks.map((r) => r.name.toLowerCase());
 
 function getRankFilter(rankName) {
   const rank = ranks.find(
@@ -20,7 +20,7 @@ function getRankFilter(rankName) {
   return `mmr between ${rank.floor} and ${rank.celing - 1}`;
 }
 
-timeNames = ["day", "week", "month", "year"];
+timeNames = ["day", "week", "month"];
 
 function getTimeFilter(durationName) {
   durationString = "UNKNOWN DURATION NAME";
@@ -75,13 +75,13 @@ const seasons = [
   },
 ];
 
-const seasonNames = seasons.map((s) => s.name);
+const seasonNames = seasons.map((s) => s.name.toLowerCase());
 
 function getSeasonFilter(seasonName) {
   const season = seasons.find(
     (s) => s.name.toLowerCase() == seasonName.toLowerCase()
   );
-  return `created_at between '${season.start}' and ${season.end}`;
+  return `created_at between '${season.start}' and '${season.end}'`;
 }
 
 /**
@@ -152,14 +152,14 @@ function queryToString(query) {
 
 function mapFilters(filters, query) {
   let mappedFilters = [];
-  for (const f in filters) {
+  for (const f of filters) {
     if (seasonNames.includes(f)) {
-      query.where.push(getSeasonFilter(f));
+      query.where.push(getSeasonFilter(f.toLowerCase()));
       mappedFilters.push(`Season filter '${f}'`);
-    } else if (rankNames.includes(f)) {
+    } else if (rankNames.includes(f.toLowerCase())) {
       query.where.push(getRankFilter(f));
       mappedFilters.push(`Rank filter '${f}'`);
-    } else if (timeNames.includes(f)) {
+    } else if (timeNames.includes(f.toLowerCase())) {
       query.where.push(getTimeFilter(f));
       mappedFilters.push(`Time filter '${f}'`);
     } else {
@@ -188,7 +188,14 @@ module.exports = {
   async getGodStats(filters) {
     let q = getGodStatsQuery();
     const mappedFilters = mapFilters(filters, q);
+    console.log(queryToString(q))
     const { rows } = await query(queryToString(q));
+    if (rows.length == 0) {
+      return {
+        filters: mappedFilters,
+        results: []
+      }
+    }
     const [rollup, ...godRows] = rows;
     const { god: _, ...totals } = rollup;
     return {

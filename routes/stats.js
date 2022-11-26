@@ -78,32 +78,36 @@ router.get(
   }
 );
 
-router.get(
-  "/more/gods",
-  async (req, res) => {
-    try {
-      const stats = await statistics.getGodStats();
-      console.log(stats);
-      res.status(200).json(stats);
-    } catch (error) {
-      console.log(error);
-      res.status(500).send({ message: "Server Error" });
+router.get("/more/gods", async (req, res) => {
+  try {
+    let filters = req.query.filters;
+    if (filters) {
+      filters = filters.split(",");
+    } else {
+      filters = []
     }
+    const stats = await statistics.getGodStats(filters);
+    res.status(200).json(stats);
+  } catch (error) {
+    console.log(error);
+    res.status(500).send({ message: "Server Error" });
   }
-);
+});
 
-router.get(
-  "/more/abilities",
-  async (req, res) => {
-    try {
-      const stats = await statistics.getAbilityStats();
-      console.log(stats);
-      res.status(200).json(stats);
-    } catch (error) {
-      console.log(error);
-      res.status(500).send({ message: "Server Error" });
+router.get("/more/abilities", async (req, res) => {
+  try {
+    let filters = req.query.filters;
+    if (filters) {
+      filters = filters.split(",");
+    } else {
+      filters = []
     }
+    const stats = await statistics.getAbilityStats();
+    res.status(200).json(stats);
+  } catch (error) {
+    console.log(error);
+    res.status(500).send({ message: "Server Error" });
   }
-);
+});
 
 module.exports = router;
