@@ -1,5 +1,6 @@
 const { query } = require("./index");
 
+// TODO These are duplicated in mmr.json and are used in the front end too. Should just put them in one place... (maybe should be in DB as well)
 const ranks = [
   { name: "Herald", floor: 0, ceiling: 500 },
   { name: "Guardian", floor: 500, ceiling: 1000 },
@@ -30,6 +31,7 @@ function getTimeFilter(durationName) {
   return `created_at > now() - interval '${durationString}'`;
 }
 
+// TODO this data should probalby live somewhere else more accessable (maybe db?)
 const seasons = [
   {
     name: "1.0",
