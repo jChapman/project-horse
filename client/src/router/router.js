@@ -47,7 +47,8 @@ const Matchmaking = () => import("../components/pages/matchmaking/Matchmaking");
 const Spells = () => import("../components/pages/learn/Spells");
 const LearnGods= () => import("../components/pages/learn/LearnGods");
 
-const GodStatistics = () => import("../components/pages/stats/GodStatistics.vue")
+const GodStatistics = () => import("../components/pages/stats/GodStatistics")
+const AbilityStatistics = () => import("../components/pages/stats/AbilityStatistics")
 
 Vue.use(VueRouter);
 
@@ -159,7 +160,11 @@ const routes = [
   {
     path: "/statistics/gods",
     component: GodStatistics,
-  }
+  },
+  {
+    path: "/statistics/abilities",
+    component: AbilityStatistics,
+  },
 ];
 
 const router = new VueRouter({

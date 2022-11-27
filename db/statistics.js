@@ -1,3 +1,4 @@
+const { addAbilityIcons } = require("./abilities");
 const { query } = require("./index");
 
 // TODO These are duplicated in mmr.json and are used in the front end too. Should just put them in one place... (maybe should be in DB as well)
@@ -213,15 +214,16 @@ module.exports = {
     const mappedFilters = mapFilters(filters, q);
     const { rows } = await query(queryToString(q));
     const [rollup, ...abilityRows] = rows;
+    await addAbilityIcons(abilityRows);
     const { ability_name: _, ...totals } = rollup;
     return {
       filters: mappedFilters,
       totals,
-      results: abilityRows.map((gStat) => ({
-        ...gStat,
-        win_rate: gStat.picks > 0 ? gStat.first_places / gStat.owned_count : 0,
+      results: abilityRows.map((aStat) => ({
+        ...aStat,
+        win_rate: aStat.owned_count > 0 ? aStat.first_places / aStat.owned_count : 0,
         top_four_rate:
-          gStat.picks > 0 ? gStat.top_fours / gStat.owned_count : 0
+          aStat.owned_count > 0 ? aStat.top_fours / aStat.owned_count : 0
       })),
     };
   },

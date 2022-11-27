@@ -112,6 +112,9 @@ const addAbilityIcons = async (list) => {
 };
 
 module.exports = {
+  async addAbilityIcons(list) {
+    return addAbilityIcons(list);
+  },
   async getAbilities() {
     return getAbilities();
   },

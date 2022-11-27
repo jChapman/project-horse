@@ -102,7 +102,7 @@ router.get("/more/abilities", async (req, res) => {
     } else {
       filters = []
     }
-    const stats = await statistics.getAbilityStats();
+    const stats = await statistics.getAbilityStats(filters);
     res.status(200).json(stats);
   } catch (error) {
     console.log(error);
