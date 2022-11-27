@@ -57,10 +57,9 @@ export default {
     },
     setDefaultFilters() {
       this.activePatchFilter = this.patchFilters[this.patchFilters.length - 1]
-      this.activeRankFilter = this.rankFilters[this.rankFilters.length - 1]
+      //this.activeRankFilter = this.rankFilters[this.rankFilters.length - 1]
     }
   },
-
 
   created() {
     this.setDefaultFilters();
@@ -166,25 +165,4 @@ th {
   margin-left: 8px;
 }
 
-.filter-button-container {
-  margin-left: 8px;
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-}
-
-.filter-button {
-  user-select: none;
-  filter: saturate(0);
-  padding: 4px;
-  margin: 4px;
-  color: #6548a0;
-  background-color: var(--primary-color-dark);
-  cursor: pointer;
-}
-
-.filter-button.selected {
-  filter: saturate(1);
-  filter: drop-shadow(0px 0px 6px rgba(0, 204, 255, .5));
-}
 </style>
