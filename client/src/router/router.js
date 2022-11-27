@@ -47,6 +47,8 @@ const Matchmaking = () => import("../components/pages/matchmaking/Matchmaking");
 const Spells = () => import("../components/pages/learn/Spells");
 const LearnGods= () => import("../components/pages/learn/LearnGods");
 
+const GodStatistics = () => import("../components/pages/stats/GodStatistics.vue")
+
 Vue.use(VueRouter);
 
 const routes = [
@@ -153,6 +155,11 @@ const routes = [
     path: "/learn/gods",
     component: LearnGods,
   },
+  // TODO make this hidden behind auth/admin
+  {
+    path: "/statistics/gods",
+    component: GodStatistics,
+  }
 ];
 
 const router = new VueRouter({
