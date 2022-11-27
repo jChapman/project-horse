@@ -39,7 +39,8 @@ export default {
 
   methods: {
     async loadGodStats() {
-      fetch('/api/stats/more/gods').then(r => r.json()).then(gs => {
+      const filters = this.$route.query.filters ? this.$route.query.filters : '';
+      fetch(`/api/stats/more/gods?filters=${filters}`).then(r => r.json()).then(gs => {
         this.godStats = gs.results;
         this.loading = false;
       }
