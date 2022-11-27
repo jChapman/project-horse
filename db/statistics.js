@@ -17,7 +17,7 @@ function getRankFilter(rankName) {
   const rank = ranks.find(
     (r) => r.name.toLowerCase() == rankName.toLowerCase()
   );
-  return `mmr between ${rank.floor} and ${rank.celing - 1}`;
+  return `mmr between ${rank.floor} and ${rank.ceiling - 1}`;
 }
 
 timeNames = ["day", "week", "month"];
