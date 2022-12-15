@@ -505,3 +505,181 @@ CREATE TABLE IF NOT EXISTS player_logs (
 );
 CREATE INDEX "IDX_player_logs_event" ON player_logs(log_event);
 CREATE INDEX "IDX_player_steam_id" ON player_logs(steam_id);
+
+
+--------------------------------------------------------------------------------
+-- Ranks
+--------------------------------------------------------------------------------
+DROP table if exists ranks;
+CREATE TABLE ranks
+(
+    name               text,
+    mmr_floor          integer,
+    mmr_ceiling        integer,
+    ladder_mmr_floor   integer,
+    ladder_mmr_ceiling integer
+);
+/* -- Game mmr vs ladder mmr
+select case
+           when players.ladder_mmr between 0 and 500 then 'Herald'
+           when players.ladder_mmr between 500 and 1000 then 'Guardian'
+           when players.ladder_mmr between 1000 and 1500 then 'Crusader'
+           when players.ladder_mmr between 1500 and 2000 then 'Archon'
+           when players.ladder_mmr between 2000 and 2500 then 'Legend'
+           when players.ladder_mmr between 2500 and 3500 then 'Ancient'
+           when players.ladder_mmr between 3500 and 4500 then 'Divine'
+           when players.ladder_mmr > 4500 then 'Immortal'
+           end,
+       count(distinct steam_id) as players_in_rank,
+       count(distinct game_id) as games_played,
+       avg(game_players.mmr) as avg_game_mmr,
+       stddev(game_players.mmr) as stddev_game_mmr,
+       min(game_players.mmr) as min_game_mmr,
+       max(game_players.mmr) as max_game_mmr,
+       min(players.ladder_mmr) as min_ladder_mmr,
+       max(players.ladder_mmr) as max_ladder_mmr
+from players join game_players using (steam_id) join games using (game_id)
+where games.created_at between '2022-11-15' and '2022-12-01' -- Some short range of dates late in the season
+group by 1;
+ */
+
+/** TODO: ladder mmr values are just guesses, could see what values in the db are for people in each actual ranks (see query above)*/
+insert into ranks
+    (name, mmr_floor, mmr_ceiling, ladder_mmr_floor, ladder_mmr_ceiling)
+VALUES ('Herald', 0, 500, -1000, 399),
+       ('Guardian', 500, 1000, 400, 599),
+       ('Crusader', 1000, 1500, 600, 799),
+       ('Archon', 1500, 2000, 800, 999),
+       ('Legend', 2000, 2500, 1000, 1199),
+       ('Ancient', 2500, 3500, 1200, 1399),
+       ('Divine', 3500, 4500, 1400, 1599),
+       ('Immortal', 4500, 9999, 1600, 3000);
+
+
+--------------------------------------------------------------------------------
+-- Stats Rollup Tables
+--------------------------------------------------------------------------------
+CREATE TABLE if not exists stats_rollup_lock
+(
+    rollup_name        text,
+    rollup_in_progress boolean
+);
+
+
+CREATE TABLE if not exists stats_gods_rollup
+(
+    day           date,
+    rank          text,
+    god_name      text,
+    picks         integer,
+    wins          integer,
+    top_fours     integer,
+    average_place real
+);
+CREATE INDEX "IDX_stats_gods_rollup_day" ON stats_gods_rollup(day)
+
+
+--------------------------------------------------------------------------------
+-- Stats Rollup Functions
+--------------------------------------------------------------------------------
+/*
+ Creates an entry in the stats_rollup_lock to indicate that something is currently updating a specific rollup table
+
+ Returns true if we acquired the lock and can proceed
+ Make sure to call unlock_rollup when done or the lock never gets release
+ */
+create or replace function lock_rollup_if_we_can(name text) returns bool
+    language plpgsql AS
+$$
+BEGIN
+    /* Make sure there's not currently an update in progress */
+    IF EXISTS(select rollup_in_progress from stats_rollup_lock where rollup_name = name)
+    THEN
+        IF ((select rollup_in_progress from stats_rollup_lock where rollup_name = name) = true)
+        THEN
+            RETURN false; /* Update is already in progress */
+        END IF;
+        UPDATE stats_rollup_lock
+        SET rollup_in_progress = true
+        WHERE rollup_name = name;
+    ELSE
+        INSERT INTO stats_rollup_lock VALUES (name, true);
+    END IF;
+    return true; /* We either made a new entry or true'd an already existing entry */
+END;
+$$;
+
+/*
+ Removes the lock (if it exists) for the given name
+ */
+create or replace function unlock_rollup(name text) returns void
+    language plpgsql AS
+$$
+BEGIN
+    IF EXISTS(select rollup_in_progress from stats_rollup_lock where rollup_name = name)
+    THEN
+        UPDATE stats_rollup_lock
+        SET rollup_in_progress = false
+        WHERE rollup_name = name;
+    END IF;
+END;
+$$;
+
+/*
+ Creates rollup entries in stats_gods_rollup for the given date
+ Fails if something is already trying to do a god rollup or if there is any entry for the provided date
+ */
+create or replace function rollup_gods(d date) RETURNS bool
+    language plpgsql AS
+$$
+DECLARE
+    rank_row record;
+BEGIN
+    IF EXISTS(select day from stats_gods_rollup where day = d)
+    THEN
+        return false; /* We already have data for the requested date */
+    END IF;
+    IF not (lock_rollup_if_we_can('rollup_gods'))
+    THEN
+        return false; /* Failed to lock */
+    END IF;
+    for rank_row in select * from ranks
+        LOOP
+            insert into stats_gods_rollup (day, rank, god_name, picks, wins, top_fours, average_place)
+            select d                                           as day,
+                   rank_row.name                               as rank,
+                   god,
+                   count(*)                                    as picks,
+                   sum(case when place = 1 then 1 else 0 end)  as first_places,
+                   sum(case when place <= 4 then 1 else 0 end) as top_fours,
+                   avg(place)                                  as average_place
+            from games
+                     join game_players using (game_id)
+            where ranked = true
+              and game_players.mmr between rank_row.ladder_mmr_floor and rank_row.ladder_mmr_ceiling
+              and created_at::date = d
+            group by god, day, rank;
+        END LOOP;
+    PERFORM unlock_rollup('rollup_gods');
+    return true;
+END;
+$$;
+
+
+/*
+ Rolls up god stats for every day since 9/21/22 until yesterday (since there will be more games today), if there is already data for that day then it's skipped
+*/
+create or replace function rollup_gods_all() RETURNS table (day date, rollup_succeeded bool)
+    language plpgsql AS
+$$
+DECLARE
+    rollup_day date;
+BEGIN
+    for rollup_day in select d::date from generate_series('2022-09-21', (now()- interval '1 day')::date, interval '1 day') as d
+        LOOP
+        day := rollup_day;
+        rollup_succeeded := (select rollup_gods(rollup_day));
+        return NEXT;
+        END LOOP;
+END;
+$$;
