@@ -7,6 +7,25 @@ const { statsManAuth } = require("../auth/auth");
 
 const cache = apicache.middleware;
 
+router.get("/gods/more", statsManAuth, cache("1 hour"), async (req, res) => {
+  try {
+    //const startDate = req.query.startDate;
+    const startDate = '11-01-2022'
+    //const endDate = req.query.endDate;
+    const endDate = '11-20-2022'
+    //const ranks = req.query.ranks;
+    const ranks = ['Legend']
+
+    console.log(startDate, endDate, ranks)
+
+    const stats = await gods.getRolledUpGodStats(startDate, endDate, ranks);
+    res.status(200).json(stats);
+  } catch (error) {
+    console.log(error);
+    res.status(500).send({ message: "Server Error" });
+  }
+});
+
 router.get("/gods", statsManAuth, cache("1 hour"), async (req, res) => {
   try {
     const hours = parseInt(req.query.hours) || 24;

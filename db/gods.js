@@ -2,7 +2,45 @@ const { query } = require("./index");
 const games = require("./games");
 const players = require("./players");
 
+function rowsToGodStats(rows) {
+  const numGames = rows.reduce((acc, row) => acc + Number(row.picks), 0);
+  const gods = rows.map((row) => {
+    const picks = Number(row.picks);
+    return {
+      picks,
+      god: row.god_name,
+      pickRate: row.picks / numGames,
+      winPercent: Number(row.wins) / picks,
+      topFourRate: Number(row.top_fours) / picks,
+      averagePlace: Number(row.place_sum) / picks,
+    };
+  });
+  return gods;
+}
+
 module.exports = {
+  async getRolledUpGodStats(startDate, endDate, ranks) {
+    try {
+      const { rows } = await query(
+        `
+        SELECT 
+          god_name,
+          sum(picks)     as picks,
+          sum(wins)      as wins,
+          sum(top_fours) as top_fours,
+          sum(place_sum) as place_sum
+        FROM stats_gods_rollup
+        WHERE rank in ('${ranks.join(", ")}')
+        AND day between '${startDate}' and '${endDate}'
+        GROUP BY god_name
+        ORDER BY picks DESC;
+      `
+      );
+      return rowsToGodStats(rows);
+    } catch (error) {
+      throw error;
+    }
+  },
   async getGodsStats(hours = 720, minMMR = 0) {
     try {
       let numGames = await games.getNumGames(hours);

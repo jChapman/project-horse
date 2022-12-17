@@ -574,7 +574,7 @@ CREATE TABLE if not exists stats_gods_rollup
     picks         integer,
     wins          integer,
     top_fours     integer,
-    average_place real
+    place_sum     integer
 );
 CREATE INDEX "IDX_stats_gods_rollup_day" ON stats_gods_rollup(day)
 
@@ -645,14 +645,15 @@ BEGIN
     END IF;
     for rank_row in select * from ranks
         LOOP
-            insert into stats_gods_rollup (day, rank, god_name, picks, wins, top_fours, average_place)
+            insert into stats_gods_rollup (day, rank, god_name, picks, wins, top_fours, place_sum)
             select d                                           as day,
                    rank_row.name                               as rank,
                    god,
                    count(*)                                    as picks,
                    sum(case when place = 1 then 1 else 0 end)  as first_places,
                    sum(case when place <= 4 then 1 else 0 end) as top_fours,
-                   avg(place)                                  as average_place
+                   sum(place)                                  as place_sum
+
             from games
                      join game_players using (game_id)
             where ranked = true
