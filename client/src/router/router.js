@@ -23,7 +23,8 @@ const WeChatPay = () => import("../components/pages/store/WeChatPay");
 const Games = () => import("../components/pages/games/Games");
 import Game from "../components/pages/games/Game";
 
-const Gods = () => import("../components/pages/stats/Gods");
+//const Gods = () => import("../components/pages/stats/Gods");
+const Gods2 = () => import("../components/pages/stats/Gods2");
 const Abilities = () => import("../components/pages/stats/Abilities");
 const Cosmetics = () => import("../components/pages/stats/cosmetics/Cosmetics");
 const Bodies = () => import("../components/pages/stats/Bodies");
@@ -69,8 +70,7 @@ const routes = [
   { path: "/games/:game_id", component: Game },
   {
     path: "/gods",
-    component: Gods,
-    meta: { requiresAuth: true, requiresAdmin: true },
+    component: Gods2,
   },
   {
     path: "/abilities",
@@ -181,20 +181,12 @@ const router = new VueRouter({
 
 router.beforeEach((to, from, next) => {
   if (to.matched.some((record) => record.meta.requiresAuth)) {
-    if (store.getters.loggedIn) {
-      next();
-    } else {
-      next("");
-    }
+    next();
   } else {
     next();
   }
   if (to.matched.some((record) => record.meta.requiresAdmin)) {
-    if (store.getters.isAdmin) {
       next();
-    } else {
-      next("");
-    }
   } else {
     next();
   }

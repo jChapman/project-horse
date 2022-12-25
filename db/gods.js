@@ -3,6 +3,52 @@ const games = require("./games");
 const players = require("./players");
 
 module.exports = {
+  async getGodsStats2(startDate, endDate, ranks) {
+    try {
+      const {rows} = await query(
+        `
+        SELECT 
+          god_name,
+          sum(picks)         AS picks,
+          sum(first_place)   AS first_place,
+          sum(second_place)  AS second_place,
+          sum(third_place)   AS third_place,
+          sum(fourth_place)  AS fourth_place,
+          sum(fifth_place)   AS fifth_place,
+          sum(sixth_place)   AS sixth_place,
+          sum(seventh_place) AS seventh_place,
+          sum(eighth_place)  AS eighth_place,
+          sum(place_sum)         AS place_sum
+        FROM stats_gods_rollup
+        WHERE rank in ('${ranks.join(", ")}')
+        AND day between '${startDate}' and '${endDate}'
+        GROUP BY god_name
+        ORDER BY picks DESC;
+      `
+      );
+      numGames = rows.reduce((acc, row) => acc + Number(row.picks), 0);
+
+      const gods = rows.map((row) => ({
+        ...row,
+        god: row.god_name,
+        pick_rate: row.picks / numGames,
+        avg_place: row.place_sum / row.picks,
+        placements: [
+          row.first_place / row.picks,
+          row.second_place / row.picks,
+          row.third_place / row.picks,
+          row.fourth_place / row.picks,
+          row.fifth_place / row.picks,
+          row.sixth_place / row.picks,
+          row.seventh_place / row.picks,
+          row.eighth_place / row.picks,
+        ]
+      }));
+      return gods;
+    } catch (error) {
+      throw error;
+    }
+  },
   async getGodsStats(hours = 720, minMMR = 0) {
     try {
       let numGames = await games.getNumGames(hours);

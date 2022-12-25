@@ -8,6 +8,19 @@ const { statsManAuth } = require("../auth/auth");
 
 const cache = apicache.middleware;
 
+router.get("/gods2", async (req, res) => {
+  try {
+    const startDate = '2022-12-01';
+    const endDate = '2022-12-24';
+    const ranks = ['Legend'];
+    console.log('test2')
+    const stats = await gods.getGodsStats2(startDate, endDate, ranks);
+    res.status(200).json(stats);
+  } catch (error) {
+    console.log(error);
+    res.status(500).send({ message: "Server Error" });
+  }
+});
 router.get("/gods", statsManAuth, cache("1 hour"), async (req, res) => {
   try {
     const hours = parseInt(req.query.hours) || 24;
