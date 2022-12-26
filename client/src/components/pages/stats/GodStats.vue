@@ -2,10 +2,22 @@
   <b-table
     :fields="fields"
     :items="gods"
+    :busy="loading"
     responsive
-    class="m-auto"
+    class="m-auto pb-5"
     style="max-width: 700px"
+    show-empty
   >
+    <template #empty>
+      <div class="text-center m-5">
+        <h3>No results found, check filters</h3>
+      </div>
+    </template>
+    <template #table-busy>
+      <div class="text-center m-5">
+        <b-spinner class="align-middle p-4"></b-spinner>
+      </div>
+    </template>
     <template #cell(god)="data">
       <div class="text-left p-2">
         <GodImage :god="data.item.god" :height="60" class="mr-2" />
@@ -65,6 +77,10 @@ export default {
     gods: {
       type: Array,
       required: true,
+    },
+    loading: {
+      type: Boolean,
+      required: true
     },
   },
 
