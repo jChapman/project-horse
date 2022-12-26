@@ -20,7 +20,7 @@ module.exports = {
           sum(eighth_place)  AS eighth_place,
           sum(place_sum)         AS place_sum
         FROM stats_gods_rollup
-        WHERE rank in ('${ranks.join(", ")}')
+        WHERE rank in ('${ranks.join("', '")}')
         AND day between '${startDate}' and '${endDate}'
         GROUP BY god_name
         ORDER BY picks DESC;

@@ -10,14 +10,12 @@ const cache = apicache.middleware;
 
 router.get("/gods2", async (req, res) => {
   try {
-    const startDate = '2022-12-01';
-    const endDate = '2022-12-24';
-    const ranks = ['Legend'];
-    console.log('test2')
+    const startDate = req.query.startDate;
+    const endDate = req.query.endDate;
+    const ranks = req.query.ranks.split(',')
     const stats = await gods.getGodsStats2(startDate, endDate, ranks);
     res.status(200).json(stats);
   } catch (error) {
-    console.log(error);
     res.status(500).send({ message: "Server Error" });
   }
 });
