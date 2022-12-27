@@ -17,11 +17,11 @@
         </b-dropdown>
       </div>
     </div>
-    <GodStats :gods="gods" :loading="loading"></GodStats>
+    <GodStats :gods="gods" :loading="loading" :ranks="selectedRanks"></GodStats>
   </div>
 </template>
-
 <script>
+
 import GodStats from "./GodStats.vue";
 export default {
   components: {

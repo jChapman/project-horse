@@ -93,7 +93,7 @@
     </template>
     <template #row-details="row">
         <div>
-          <GodHistoricalGraph :god="row.item"/>
+          <GodHistoricalGraph :god="row.item" :ranks="ranks"/>
           <b-button size="sm" @click="row.toggleDetails">Hide</b-button>
         </div>
       </template>
@@ -115,6 +115,10 @@ export default {
 
   props: {
     gods: {
+      type: Array,
+      required: true,
+    },
+    ranks: {
       type: Array,
       required: true,
     },

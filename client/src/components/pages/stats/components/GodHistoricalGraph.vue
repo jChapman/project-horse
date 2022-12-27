@@ -1,5 +1,5 @@
 <script>
-import { Line as LineChart } from 'vue-chartjs'
+import { Line as LineChart } from "vue-chartjs";
 
 import {
   Chart as ChartJS,
@@ -9,8 +9,8 @@ import {
   LineElement,
   LinearScale,
   CategoryScale,
-  PointElement
-} from 'chart.js'
+  PointElement,
+} from "chart.js";
 
 ChartJS.register(
   Title,
@@ -20,7 +20,7 @@ ChartJS.register(
   LinearScale,
   CategoryScale,
   PointElement
-)
+);
 
 export default {
   components: {
@@ -28,55 +28,83 @@ export default {
   },
   props: {
     god: {
-        type: Object,
-        required: true,
+      type: Object,
+      required: true,
+    },
+    ranks: {
+      type: Array,
+      required: true,
     },
     width: {
       type: Number,
-      default: 400
+      default: 400,
     },
     height: {
       type: Number,
-      default: 400
+      default: 400,
     },
   },
-  data() {
-    return {
-      chartData: {
-        labels: [
-          'January',
-          'February',
-          'March',
-          'April',
-          'May',
-          'June',
-          'July'
-        ],
-        datasets: [
-          {
-            label: 'Data One',
-            backgroundColor: '#f87979',
-            data: [40, 39, 10, 40, 39, 80, 40]
-          }
-        ]
-      },
-      chartOptions: {
-        responsive: true,
-        maintainAspectRatio: false
-      }
+  methods: {
+    loadDailyStats() {
+        this.loaded = false;
+      fetch(`/api/stats/godDaily?god=${this.god.god}&ranks=${this.ranks.join(',')}`)
+        .then(res => res.json())
+        .then(stats => {
+            console.log(stats);
+            this.chartData.labels = stats.map(ds => ds.day);
+            this.chartData.datasets = [
+                {
+                    label: "Pick Rate",
+                    backgroundColor: "#FF0000",
+                    data: stats.map(ds => ds.pick_rate)
+                },
+                {
+                    label: "Win Rate",
+                    backgroundColor: "#00FF00",
+                    data: stats.map(ds => ds.win_rate)
+                },
+                {
+                    label: "Top 4 Rate",
+                    backgroundColor: "#0000FF",
+                    data: stats.map(ds => ds.top_four_rate)
+                },
+            ]
+            this.loaded = true;
+        });
     }
-  }
-}
+  },
+  data: () => ({
+    loaded: false,
+    chartData: {
+      labels: ["January", "February", "March", "April", "May", "June", "July"],
+      datasets: [
+        {
+          label: "Data One",
+          backgroundColor: "#f87979",
+          data: [40, 39, 10, 40, 39, 80, 40],
+        },
+      ],
+    },
+    chartOptions: {
+      responsive: true,
+      maintainAspectRatio: false,
+    },
+  }),
+  created() {
+    this.loadDailyStats();
+  },
+};
 </script>
 
 <template>
   <div class="stats-container">
-  <LineChart
-    :data="chartData"
-    :options="chartOptions"
-    :width="width"
-    :height="height"
-  />
+    <LineChart
+      v-if="loaded"
+      :data="chartData"
+      :options="chartOptions"
+      :width="width"
+      :height="height"
+    />
   </div>
 </template>
 
