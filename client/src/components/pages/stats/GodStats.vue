@@ -35,7 +35,7 @@
             :value="data.item.pick_rate"
             class="mt-1 progress-bar"
             v-b-tooltip.hover
-            :title="data.item.god_freq"
+            :title="`Total picks: ${data.item.picks}`"
           ></PercentBar>
         </div>
       </div>
@@ -51,7 +51,7 @@
             :value="data.item.win_rate"
             class="mt-1 progress-bar"
             v-b-tooltip.hover
-            :title="data.item.god_freq"
+            :title="`Number of first places finishes: ${data.item.first_place}`"
           ></PercentBar>
         </div>
       </div>
@@ -67,7 +67,7 @@
             :value="data.item.top_four_rate"
             class="mt-1 progress-bar"
             v-b-tooltip.hover
-            :title="data.item.god_freq"
+            :title="`Total top four finishes: ${[data.item.first_place, data.item.second_place, data.item.third_place, data.item.fourth_place].reduce((p, c) => p+Number(c), 0)}`"
           ></PercentBar>
         </div>
       </div>
@@ -163,7 +163,6 @@ export default {
         this.maxTopFourRate = Math.max(...this.gods.map(g => g.top_four_rate))
         this.maxAvgPlace = Math.max(...this.gods.map(g => g.avg_place))
       }
-      console.log(this.gods[0].top_four_rate)
     }
   },
 
