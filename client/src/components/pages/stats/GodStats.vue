@@ -67,7 +67,12 @@
             :value="data.item.top_four_rate"
             class="mt-1 progress-bar"
             v-b-tooltip.hover
-            :title="`Total top four finishes: ${[data.item.first_place, data.item.second_place, data.item.third_place, data.item.fourth_place].reduce((p, c) => p+Number(c), 0)}`"
+            :title="`Total top four finishes: ${[
+              data.item.first_place,
+              data.item.second_place,
+              data.item.third_place,
+              data.item.fourth_place,
+            ].reduce((p, c) => p + Number(c), 0)}`"
           ></PercentBar>
         </div>
       </div>
@@ -88,22 +93,33 @@
     </template>
     <template #cell(show_details)="row">
       <span @click="row.toggleDetails" class="" style="cursor: pointer">
-        {{ row.detailsShowing ? '-' : '+' }}
+        {{ row.detailsShowing ? "-" : "+" }}
       </span>
     </template>
     <template #row-details="row">
-        <div>
-          <GodHistoricalGraph :god="row.item" :ranks="ranks"/>
-          <b-button size="sm" @click="row.toggleDetails">Hide</b-button>
+      <div class="d-flex-row p-2">
+        <h5>Explanded Statistics</h5>
+        <div class="d-flex mb-2">
+          <div class="d-flex-row" style="flex-grow: 1">
+            <span>Last 7 Days</span>
+            <GodHistoricalGraph :god="row.item" :ranks="ranks" />
+          </div>
+          <div class="d-flex-row">
+            <span>Placements</span>
+            <PlacementGraph :placements="row.item.placements" />
+          </div>
         </div>
-      </template>
+        <b-button size="sm" @click="row.toggleDetails">Hide</b-button>
+      </div>
+    </template>
   </b-table>
 </template>
 
 <script>
 import PercentBar from "../../utility/PercentBar.vue";
 import GodImage from "../games/components/GodImage.vue";
-import GodHistoricalGraph from "./components/GodHistoricalGraph.vue"
+import GodHistoricalGraph from "./components/GodHistoricalGraph.vue";
+import PlacementGraph from "./components/PlacementGraph.vue";
 import { percentage, round } from "../../../filters/filters";
 
 export default {
@@ -111,6 +127,7 @@ export default {
     PercentBar,
     GodImage,
     GodHistoricalGraph,
+    PlacementGraph,
   },
 
   props: {
@@ -124,7 +141,7 @@ export default {
     },
     loading: {
       type: Boolean,
-      required: true
+      required: true,
     },
   },
 
@@ -178,14 +195,16 @@ export default {
     ];
   },
   watch: {
-    gods: function() {
+    gods: function () {
       if (this.gods.length) {
-        this.maxPickRate = Math.max(...this.gods.map(g => g.pick_rate))
-        this.maxWinRate = Math.max(...this.gods.map(g => g.win_rate))
-        this.maxTopFourRate = Math.max(...this.gods.map(g => g.top_four_rate))
-        this.maxAvgPlace = Math.max(...this.gods.map(g => g.avg_place))
+        this.maxPickRate = Math.max(...this.gods.map((g) => g.pick_rate));
+        this.maxWinRate = Math.max(...this.gods.map((g) => g.win_rate));
+        this.maxTopFourRate = Math.max(
+          ...this.gods.map((g) => g.top_four_rate)
+        );
+        this.maxAvgPlace = Math.max(...this.gods.map((g) => g.avg_place));
       }
-    }
+    },
   },
 
   methods: {

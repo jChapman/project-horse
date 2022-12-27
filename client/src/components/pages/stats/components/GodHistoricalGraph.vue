@@ -56,12 +56,6 @@ export default {
           this.chartData.labels = stats.map((ds) => ds.day.substring(0, 10));
           this.chartData.datasets = [
             {
-              label: "Pick Rate",
-              borderColor: "#FF0000",
-              backgroundColor: "#FF0000",
-              data: stats.map((ds) => ds.pick_rate),
-            },
-            {
               label: "Win Rate",
               borderColor: "#00FF00",
               backgroundColor: "#00FF00",
@@ -128,28 +122,5 @@ export default {
 .stats-container {
   display: flex;
   background: var(--primary-color);
-}
-
-.bar-container {
-  height: 50px;
-  width: 15px;
-  margin-left: 6px;
-}
-
-.bar {
-  height: 100%;
-  width: 100%;
-  display: flex;
-}
-
-.bar-inner {
-  background-color: var(--primary-color);
-  width: 100%;
-  align-self: flex-end;
-}
-
-.bar-label {
-  text-align: center;
-  font-size: 10px;
 }
 </style>
