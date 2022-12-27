@@ -20,7 +20,7 @@
     </template>
     <template #cell(god)="data">
       <div class="text-left p-2">
-        <GodImage :god="data.item.god" :height="60" class="mr-2" />
+        <GodImage :god="data.item.god" :height="25" class="mr-2" />
         {{ $t(`gods.${data.item.god}`) }}
       </div>
     </template>
@@ -31,8 +31,40 @@
         </div>
         <div class="percentage-holder">
           <PercentBar
-            :max="1"
+            :max="maxPickRate"
             :value="data.item.pick_rate"
+            class="mt-1 progress-bar"
+            v-b-tooltip.hover
+            :title="data.item.god_freq"
+          ></PercentBar>
+        </div>
+      </div>
+    </template>
+    <template #cell(win_rate)="data">
+      <div class="percent-td">
+        <div class="text-left">
+          {{ percentage(data.item.win_rate, 1) }}
+        </div>
+        <div class="percentage-holder">
+          <PercentBar
+            :max="maxWinRate"
+            :value="data.item.win_rate"
+            class="mt-1 progress-bar"
+            v-b-tooltip.hover
+            :title="data.item.god_freq"
+          ></PercentBar>
+        </div>
+      </div>
+    </template>
+    <template #cell(top_four_rate)="data">
+      <div class="percent-td">
+        <div class="text-left">
+          {{ percentage(data.item.top_four_rate, 1) }}
+        </div>
+        <div class="percentage-holder">
+          <PercentBar
+            :max="maxTopFourRate"
+            :value="data.item.top_four_rate"
             class="mt-1 progress-bar"
             v-b-tooltip.hover
             :title="data.item.god_freq"
@@ -47,29 +79,24 @@
         </div>
         <div class="percentage-holder">
           <PercentBar
-            :max="8"
+            :max="maxAvgPlace"
             :value="data.item.avg_place"
             class="mt-1 progress-bar"
           ></PercentBar>
         </div>
       </div>
     </template>
-    <template #cell(placements)="data">
-      <PlacemementGraph :placements="data.item.placements"></PlacemementGraph>
-    </template>
   </b-table>
 </template>
 
 <script>
 import PercentBar from "../../utility/PercentBar.vue";
-import PlacemementGraph from "./components/PlacementGraph.vue";
 import GodImage from "../games/components/GodImage.vue";
 import { percentage, round } from "../../../filters/filters";
 
 export default {
   components: {
     PercentBar,
-    PlacemementGraph,
     GodImage,
   },
 
@@ -86,6 +113,10 @@ export default {
 
   data: () => ({
     fields: [],
+    maxPickRate: 1,
+    maxWinRate: 1,
+    maxTopFourRate: 1,
+    maxAvgPlace: 1,
   }),
 
   created() {
@@ -105,18 +136,35 @@ export default {
         sortable: true,
       },
       {
+        key: "win_rate",
+        label: "Win Rate",
+        thClass: "table-head",
+        sortable: true,
+      },
+      {
+        key: "top_four_rate",
+        label: "Top Four Rate",
+        thClass: "table-head",
+        sortable: true,
+      },
+      {
         key: "avg_place",
         label: this.$i18n.t("gods.avg_place"),
         thClass: "table-head",
         sortable: true,
       },
-      {
-        key: "placements",
-        label: this.$i18n.t("gods.placements"),
-        thClass: "table-head",
-        sortable: false,
-      },
     ];
+  },
+  watch: {
+    gods: function() {
+      if (this.gods.length) {
+        this.maxPickRate = Math.max(...this.gods.map(g => g.pick_rate))
+        this.maxWinRate = Math.max(...this.gods.map(g => g.win_rate))
+        this.maxTopFourRate = Math.max(...this.gods.map(g => g.top_four_rate))
+        this.maxAvgPlace = Math.max(...this.gods.map(g => g.avg_place))
+      }
+      console.log(this.gods[0].top_four_rate)
+    }
   },
 
   methods: {

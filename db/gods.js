@@ -32,6 +32,8 @@ module.exports = {
         ...row,
         god: row.god_name,
         pick_rate: row.picks / numGames,
+        win_rate: row.first_place / row.picks,
+        top_four_rate: (Number(row.first_place) + Number(row.second_place) + Number(row.third_place) + Number(row.fourth_place)) / row.picks,
         avg_place: row.place_sum / row.picks,
         placements: [
           row.first_place / row.picks,
