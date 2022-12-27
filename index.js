@@ -29,6 +29,7 @@ const announcementsRouter = require("./routes/announcements");
 const websocketHandler = require("./websocket/connection");
 
 const players = require("./db/players");
+const rollup = require("./db/rollup");
 const { pool } = require("./db/index");
 
 const port = 4000;
@@ -236,3 +237,9 @@ cron.schedule("0 0 0 * * 1", async () => {
 //   console.log("Resetting login quests...");
 //   await lobbyPlayers.kickAfk();
 // });
+
+// Run stats rollup daily at 2am 
+cron.schedule("0 2 * * *", async () => {
+  console.log("Running stats rollup");
+  await rollup.runGodRollup();
+});
