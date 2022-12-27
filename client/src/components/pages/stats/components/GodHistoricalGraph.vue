@@ -46,48 +46,64 @@ export default {
   },
   methods: {
     loadDailyStats() {
-        this.loaded = false;
-      fetch(`/api/stats/godDaily?god=${this.god.god}&ranks=${this.ranks.join(',')}`)
-        .then(res => res.json())
-        .then(stats => {
-            console.log(stats);
-            this.chartData.labels = stats.map(ds => ds.day);
-            this.chartData.datasets = [
-                {
-                    label: "Pick Rate",
-                    backgroundColor: "#FF0000",
-                    data: stats.map(ds => ds.pick_rate)
-                },
-                {
-                    label: "Win Rate",
-                    backgroundColor: "#00FF00",
-                    data: stats.map(ds => ds.win_rate)
-                },
-                {
-                    label: "Top 4 Rate",
-                    backgroundColor: "#0000FF",
-                    data: stats.map(ds => ds.top_four_rate)
-                },
-            ]
-            this.loaded = true;
+      this.loaded = false;
+      fetch(
+        `/api/stats/godDaily?god=${this.god.god}&ranks=${this.ranks.join(",")}`
+      )
+        .then((res) => res.json())
+        .then((stats) => {
+          stats = stats.reverse();
+          this.chartData.labels = stats.map((ds) => ds.day.substring(0, 10));
+          this.chartData.datasets = [
+            {
+              label: "Pick Rate",
+              borderColor: "#FF0000",
+              backgroundColor: "#FF0000",
+              data: stats.map((ds) => ds.pick_rate),
+            },
+            {
+              label: "Win Rate",
+              borderColor: "#00FF00",
+              backgroundColor: "#00FF00",
+              data: stats.map((ds) => ds.win_rate),
+            },
+            {
+              label: "Top 4 Rate",
+              borderColor: "#0000FF",
+              backgroundColor: "#0000FF",
+              data: stats.map((ds) => ds.top_four_rate),
+            },
+          ];
+          this.loaded = true;
         });
-    }
+    },
   },
   data: () => ({
     loaded: false,
     chartData: {
-      labels: ["January", "February", "March", "April", "May", "June", "July"],
-      datasets: [
-        {
-          label: "Data One",
-          backgroundColor: "#f87979",
-          data: [40, 39, 10, 40, 39, 80, 40],
-        },
-      ],
+      labels: [],
+      datasets: [],
     },
     chartOptions: {
       responsive: true,
       maintainAspectRatio: false,
+      color: "#cecece",
+
+      scales: {
+        y: {
+          ticks: {
+            color: "#cecece",
+            format: {
+              style: "percent",
+            },
+          },
+        },
+        x: {
+          ticks: {
+            color: "#cecece",
+          },
+        },
+      },
     },
   }),
   created() {
