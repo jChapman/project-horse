@@ -1,5 +1,5 @@
 <script>
-import GodCard from '../../utility/gods/GodCard.vue';
+import GodCard from '../../gods/GodCard.vue';
 
 export default {
   components: {
