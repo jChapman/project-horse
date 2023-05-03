@@ -66,7 +66,6 @@ const routes = [
   {
     path: "/admin",
     component: Admin,
-    meta: { requiresAuth: true, requiresAdmin: true },
   },
   { path: "/redirect", component: LoginRedirect },
   { path: "/games", component: Games },
@@ -74,48 +73,39 @@ const routes = [
   {
     path: "/gods",
     component: Gods,
-    meta: { requiresAuth: true, requiresAdmin: true },
   },
   {
     path: "/gods/:god",
     component: God,
-    meta: { requiresAuth: true, requiresAdmin: true },
   },
   {
     path: "/abilities",
     component: Abilities,
-    meta: { requiresAuth: true, requiresAdmin: true },
   },
   {
     path: "/abilities/:ability_name",
     component: IndividualAbility,
-    meta: { requiresAuth: true, requiresAdmin: true },
   },
   {
     path: "/cosmetics",
     component: Cosmetics,
-    meta: { requiresAuth: true, requiresAdmin: true },
   },
   {
     path: "/bodies",
     component: Bodies,
-    meta: { requiresAuth: true, requiresAdmin: true },
   },
   {
     path: "/stats/games",
     component: GameStats,
-    meta: { requiresAuth: true, requiresAdmin: true },
   },
   { path: "/leaderboard", component: Leaderboard },
   {
     path: "/redeem_code",
     component: RedemptionCode,
-    meta: { requiresAuth: true },
   },
   {
     path: "/matchmaking",
     component: Matchmaking,
-    meta: { requiresAuth: true },
   },
   { path: "/players/:steam_id", component: PlayerPage },
   { path: "/players/:steam_id/games", component: PlayerGamesList },
@@ -145,11 +135,10 @@ const routes = [
     }),
   },
 
-  { path: "/profile", component: Profile, meta: { requiresAuth: true } },
+  { path: "/profile", component: Profile, meta: { } },
   {
     path: "/profile/games",
     component: MatchHistory,
-    meta: { requiresAuth: true },
   },
   {
     path: "/profile/achievements",

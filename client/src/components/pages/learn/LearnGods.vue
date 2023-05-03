@@ -17,10 +17,10 @@ export default {
   methods: {
     async loadAndFilterGods() {
       const godReq = fetch(`/data/${this.$t("gods.dataFile")}`).then((res) => res.json())
-      const filterReq = fetch('/api/gods').then(r => r.json()).then(gods => this.enabledGods = gods.filter(g => g.god_enabled).map(g => g.god_name));
-      const [allKnownGods, godFilter] = await Promise.all([godReq, filterReq])
+      //const filterReq = fetch('/api/gods').then(r => r.json()).then(gods => this.enabledGods = gods.filter(g => g.god_enabled).map(g => g.god_name));
+      const [allKnownGods] = await Promise.all([godReq])
       this.loading = false;
-      this.gods = allKnownGods.filter(g => godFilter.includes(g.id))
+      this.gods = allKnownGods;
       this.updateShownGods();
     },
 

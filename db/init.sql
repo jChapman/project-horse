@@ -551,6 +551,8 @@ CREATE TABLE IF NOT EXISTS player_logs (
 );
 CREATE INDEX "IDX_player_logs_event" ON player_logs(log_event);
 CREATE INDEX "IDX_player_steam_id" ON player_logs(steam_id);
+CREATE INDEX "IDX_player_logs_log_time" ON player_logs(log_time);
+
 
 --------------------------------------------------------------------------------
 -- Stats Rollup Tables
